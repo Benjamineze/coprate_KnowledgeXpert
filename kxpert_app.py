@@ -5,9 +5,9 @@ import base64
 from google.oauth2 import service_account
 
 # Load BigQuery credentials from secrets
-credentials = service_account.Credentials.from_service_account_info(
-    st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
-)
+credentials_json_str = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+credentials_dict = json.loads(credentials_json_str)  # Parse the JSON string into a dictionary
+credentials = service_account.Credentials.from_service_account_info(credentials_dict)
 
 # OpenAI and Google BigQuery credentials
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
