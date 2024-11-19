@@ -115,7 +115,7 @@ if not st.session_state.logged_in:
     if password and st.session_state.get("password_input") in VALID_PASSWORDS:
         st.session_state.logged_in = True
         st.success("Access granted! You can now use the chat.")
-        st.experimental_rerun()
+        st.rerun()
     elif password:
         st.error("Access denied! Incorrect password.")
 
