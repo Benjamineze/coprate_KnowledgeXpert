@@ -4,3 +4,9 @@ python-dotenv==0.21.0
 PyPDF2==3.0.1
 python-docx==1.1.2
 toml==0.10.2
+google-api-core==2.21.0
+google-auth==2.35.0
+google-cloud==0.34.0
+google-cloud-bigquery==3.26.0
+google-cloud-bigquery-storage==2.26.0
+google-cloud-core==2.4.1
