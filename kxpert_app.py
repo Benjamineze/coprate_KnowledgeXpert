@@ -130,7 +130,7 @@ if st.session_state.logged_in:
                     st.success("Data loaded successfully!")
                 else:
                     st.error("Failed to load data. Please check your BigQuery configuration.")
-            st.experimental_rerun()
+            st.rerun()
 
     # Chat interface
     if st.session_state.uploaded_content:
@@ -179,4 +179,4 @@ if st.session_state.logged_in:
         # Clear conversation
         if st.button("Clear Conversation"):
             st.session_state.conversation_history = []
-            st.experimental_rerun()
+            st.rerun()
