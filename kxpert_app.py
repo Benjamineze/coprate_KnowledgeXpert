@@ -19,17 +19,30 @@ PROJECT_ID = st.secrets["BIGQUERY_PROJECT_ID"]
 DATASET_ID = st.secrets["BIGQUERY_DATASET_ID"]
 TABLE_ID = st.secrets["BIGQUERY_TABLE_ID"]
 
-# Function to load data from BigQuery
 def load_data_from_bigquery(PROJECT_ID, DATASET_ID, TABLE_ID):
     try:
-        client = bigquery.Client()
+        # Ensure the BigQuery client is authenticated and project is set
+        client = bigquery.Client(credentials=credentials, project=PROJECT_ID)
         table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
-        query = f"SELECT string_field_0 AS category, string_field_1 AS content FROM `{table_ref}`"
+        
+        # Adjust the query if necessary to match the schema of your table
+        query = f"""
+            SELECT string_field_0 AS category, string_field_1 AS content
+            FROM `{table_ref}`
+        """
+        
+        # Execute the query
         query_job = client.query(query)
         results = query_job.result()
-        return [{"category": row["category"], "content": row["content"] or "No content available"} for row in results]
+        
+        # Parse and return results as a list of dictionaries
+        return [
+            {"category": row["category"], "content": row["content"] or "No content available"}
+            for row in results
+        ]
     except Exception as e:
-        return f"Error loading data from BigQuery: {e}"
+        st.error(f"Error loading data from BigQuery: {e}")
+        return []
 
 # Function to query GPT model
 def query_gpt(prompt, table_data):
