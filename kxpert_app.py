@@ -2,6 +2,12 @@ import streamlit as st
 import openai
 from google.cloud import bigquery
 import base64
+from google.oauth2 import service_account
+
+# Load BigQuery credentials from secrets
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+)
 
 # OpenAI and Google BigQuery credentials
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
