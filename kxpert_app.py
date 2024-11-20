@@ -6,6 +6,9 @@ from google.oauth2 import service_account
 
 
 # OpenAI and Google BigQuery credentials
+credentials_info = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+credentials = service_account.Credentials.from_service_account_info(credentials_info)
+
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 VALID_PASSWORDS = st.secrets["VALID_PASSWORDS"].split(",")
 
@@ -18,7 +21,7 @@ TABLE_ID = st.secrets["BIGQUERY_TABLE_ID"]
 def load_data_from_bigquery(PROJECT_ID, DATASET_ID, TABLE_ID):
     try:
         # Initialize the BigQuery client
-        client = bigquery.Client()
+        client = bigquery.Client(credentials=credentials, project=credentials.project_id)
 
         # Build the table reference
         table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
