@@ -1,14 +1,9 @@
-import json
 import streamlit as st
 import openai
 from google.cloud import bigquery
 import base64
 from google.oauth2 import service_account
 
-# Load BigQuery credentials from secrets
-credentials_json_str = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
-credentials_dict = json.loads(credentials_json_str)  # Parse the JSON string into a dictionary
-credentials = service_account.Credentials.from_service_account_info(credentials_dict)
 
 # OpenAI and Google BigQuery credentials
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
@@ -19,27 +14,29 @@ PROJECT_ID = st.secrets["BIGQUERY_PROJECT_ID"]
 DATASET_ID = st.secrets["BIGQUERY_DATASET_ID"]
 TABLE_ID = st.secrets["BIGQUERY_TABLE_ID"]
 
+# Function to load data from BigQuery
 def load_data_from_bigquery(PROJECT_ID, DATASET_ID, TABLE_ID):
     try:
-        # Ensure the BigQuery client is authenticated and project is set
-        client = bigquery.Client(credentials=credentials, project=PROJECT_ID)
+        # Initialize the BigQuery client
+        client = bigquery.Client()
+
+        # Build the table reference
         table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
-        
-        # Adjust the query if necessary to match the schema of your table
+
+        # Query the table
         query = f"""
-            SELECT string_field_0 AS category, string_field_1 AS content
-            FROM `{table_ref}`
+        SELECT 
+            string_field_0 AS category, 
+            COALESCE(string_field_1, 'No content available') AS content
+        FROM `{table_ref}`
         """
-        
-        # Execute the query
         query_job = client.query(query)
         results = query_job.result()
-        
-        # Parse and return results as a list of dictionaries
-        return [
-            {"category": row["category"], "content": row["content"] or "No content available"}
-            for row in results
-        ]
+
+        # Format the results into a list of dictionaries
+        data = [{"category": row["category"], "content": row["content"]} for row in results]
+
+        return data
     except Exception as e:
         st.error(f"Error loading data from BigQuery: {e}")
         return []
@@ -49,7 +46,7 @@ def query_gpt(prompt, table_data):
     try:
         # Prepare relevant table information for the query
         table_context = "\n".join(
-            [f"Category: {entry['category']}, Content: {entry['content']}" for entry in table_data]
+            [f"Category: {entry['category']}, Content: {entry['content'][:500]}" for entry in table_data]
         )
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -60,9 +57,9 @@ def query_gpt(prompt, table_data):
         )
         return response.choices[0].message['content'].strip()
     except Exception as e:
-        return f"Error: {e}"
+        return f"Error querying GPT: {e}"
 
-# Add background
+# Function to add background
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as file:
         data = file.read()
@@ -82,8 +79,7 @@ def add_bg_from_local(image_file):
             unsafe_allow_html=True
         )
 
-add_bg_from_local("vecteezy_teal-background-high-quality_30679827.jpg")
-
+# Function to add circle image
 def add_circle_image_to_bg(image_path):
     with open(image_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode()
@@ -96,8 +92,8 @@ def add_circle_image_to_bg(image_path):
         }}
         .circle-image {{
             position: absolute;
-            top: 3px;  /* Adjust vertical position */
-            left: calc(100% - 292px);  /* Position it near the end of the title */
+            top: 3px; 
+            left: calc(100% - 292px); 
             transform: translateX(-50%);
             border-radius: 100%;
             width: 40px;
@@ -111,9 +107,12 @@ def add_circle_image_to_bg(image_path):
         """,
         unsafe_allow_html=True
     )
+
+# Add background and logo
+add_bg_from_local("vecteezy_teal-background-high-quality_30679827.jpg")
 add_circle_image_to_bg("Ke image.jfif")
 
-    # Initialize session state
+# Initialize session state
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'uploaded_content' not in st.session_state:
@@ -160,7 +159,7 @@ if st.session_state.logged_in:
             st.markdown(
                 f"""
                 <div style='text-align: right; font-style: italic; font-size: 18px; padding: 10px 0;'>
-                    <b>Q:   </b> {exchange['query']}
+                    <b>Q:</b> {exchange['query']}
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -169,7 +168,7 @@ if st.session_state.logged_in:
             st.markdown(
                 f"""
                 <div style='text-align: left; color: #FBFBFB; font-size: 18px; padding: 10px 0;'>
-                    <b><i>Response</i></b>: {exchange['response']}
+                    <b><i>Response</i>:</b> {exchange['response']}
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -178,7 +177,6 @@ if st.session_state.logged_in:
         # Process query when user submits
         def process_query():
             if st.session_state.user_query.strip():
-             
                 # Generate the response
                 response = query_gpt(st.session_state.user_query, st.session_state.uploaded_content)
                 # Append to conversation history
