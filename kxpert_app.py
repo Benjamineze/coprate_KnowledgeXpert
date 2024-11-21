@@ -3,6 +3,7 @@ import openai
 from google.cloud import bigquery
 import base64
 from google.oauth2 import service_account
+from collections import defaultdict
 
 
 # OpenAI and Google BigQuery credentials
@@ -16,8 +17,7 @@ openai.api_key = OPENAI_API_KEY
 PROJECT_ID = st.secrets["BIGQUERY_PROJECT_ID"]
 DATASET_ID = st.secrets["BIGQUERY_DATASET_ID"]
 TABLE_ID = st.secrets["BIGQUERY_TABLE_ID"]
-
-# Function to load data from BigQuery
+# Function to load and consolidate data from BigQuery
 def load_data_from_bigquery(PROJECT_ID, DATASET_ID, TABLE_ID):
     try:
         # Initialize the BigQuery client
@@ -36,8 +36,16 @@ def load_data_from_bigquery(PROJECT_ID, DATASET_ID, TABLE_ID):
         query_job = client.query(query)
         results = query_job.result()
 
-        # Format the results into a list of dictionaries
-        data = [{"category": row["category"], "content": row["content"]} for row in results]
+        # Consolidate rows with the same category
+        consolidated_data = defaultdict(list)
+        for row in results:
+            consolidated_data[row["category"]].append(row["content"])
+
+        # Combine all content for each category into a single string
+        data = [
+            {"category": category, "content": " ".join(contents)}
+            for category, contents in consolidated_data.items()
+        ]
 
         return data
     except Exception as e:
@@ -49,7 +57,7 @@ def query_gpt(prompt, table_data):
     try:
         # Prepare relevant table information for the query
         table_context = "\n".join(
-            [f"Category: {entry['category']}, Content: {entry['content'][:500]}" for entry in table_data]
+            [f"Category: {entry['category']}, Content: {entry['content']}" for entry in table_data]
         )
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -61,7 +69,6 @@ def query_gpt(prompt, table_data):
         return response.choices[0].message['content'].strip()
     except Exception as e:
         return f"Error querying GPT: {e}"
-
 # Function to add background
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as file:
