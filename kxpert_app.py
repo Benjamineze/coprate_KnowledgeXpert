@@ -53,20 +53,24 @@ def load_data_from_bigquery(PROJECT_ID, DATASET_ID, TABLE_ID):
         return []
 
 # Function to query GPT model
-def query_gpt(prompt, table_data):
+def query_gpt(prompt, table_data, name="Benjamin"):
     try:
         # Prepare relevant table information for the query
         table_context = "\n".join(
             [f"Category: {entry['category']}, Content: {entry['content']}" for entry in table_data]
         )
+
+        # Add the name explicitly to the prompt
+        personalized_prompt = f"The individual's name is {name}. {prompt}"
+        
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": f"{table_context}\n\n{prompt}"}
+                {"role": "user", "content": f"{table_context}\n\n{personalized_prompt}"}
             ]
         )
-        return response.choices[0].message['content'].strip()
+        return response.choices[0].message['content'].replace("the individual", name).strip()
     except Exception as e:
         return f"Error querying GPT: {e}"
 # Function to add background
