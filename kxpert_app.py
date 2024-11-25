@@ -115,7 +115,7 @@ def add_circle_image_to_bg(image_path):
         }}
         </style>
         <div class="title-wrapper">
-            <h1 style="margin: 0;">My Knowledge Xpert</h1>
+            <h1 style="margin: 0;">Knowledge Xpert</h1>
             <img class="circle-image" src="data:image/png;base64,{encoded_image}" />
         </div>
         """,
