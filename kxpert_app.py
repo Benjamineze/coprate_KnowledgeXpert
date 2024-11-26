@@ -107,7 +107,7 @@ def add_circle_image_to_bg(image_path):
         .circle-image {{
             position: absolute;
             top: 3px; 
-            left: calc(100% - 292px); 
+            left: calc(100% - 358px); 
             transform: translateX(-50%);
             border-radius: 100%;
             width: 40px;
