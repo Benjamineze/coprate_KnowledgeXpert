@@ -173,7 +173,7 @@ if st.session_state.logged_in:
             st.markdown(
                 f"""
                 <div style='text-align: right; font-style: italic; font-size: 18px; padding: 10px 0;'>
-                    <b>Q:</b> {exchange['query']}
+                    &#128162;&nbsp; {exchange['query']}
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -182,7 +182,7 @@ if st.session_state.logged_in:
             st.markdown(
                 f"""
                 <div style='text-align: left; color: #FBFBFB; font-size: 18px; padding: 10px 0;'>
-                    <b><i>Response</i>:</b> {exchange['response']}
+                     ❄️ {exchange['response']}
                 </div>
                 """,
                 unsafe_allow_html=True
